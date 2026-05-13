@@ -1134,6 +1134,73 @@
       white-space: nowrap;
     }
 
+    .episode-readonly-strip {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 120px 120px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .episode-readonly-strip > div {
+      min-height: 64px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel-soft);
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      overflow: hidden;
+    }
+
+    .episode-readonly-strip span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .episode-readonly-strip strong {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .episode-readonly-strip .thumb {
+      width: 34px;
+      height: 44px;
+    }
+
+    .episode-edit-grid {
+      display: grid;
+      grid-template-columns: 120px minmax(220px, 1fr) 130px 150px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .episode-edit-grid .form-group {
+      margin-bottom: 0;
+    }
+
+    .episode-edit-grid .wide {
+      grid-column: span 2;
+    }
+
+    .episode-edit-grid .upload-cell {
+      min-height: 116px;
+    }
+
+    .episode-edit-grid .compact-file {
+      min-height: 40px;
+    }
+
+    .episode-edit-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
 
     .drawer {
       position: fixed;
@@ -1332,7 +1399,7 @@
                   <col style="width: 100px;" />
                   <col style="width: 242px;" />
                   <col style="width: 116px;" />
-                  <col style="width: 92px;" />
+                  <col style="width: 138px;" />
                 </colgroup>
                 <thead>
                   <tr>
@@ -1423,6 +1490,81 @@
     <div class="modal-foot">
       <button class="btn" id="cancelConfirmBtn">取消</button>
       <button class="btn danger" id="okConfirmBtn">确认删除</button>
+    </div>
+  </section>
+
+  <section class="modal" id="episodeEditModal" aria-modal="true" role="dialog">
+    <div class="modal-head">
+      <div>
+        <h3>编辑单集</h3>
+        <div class="muted">作品 ID、预览、点赞为只读信息；可替换当前视频。</div>
+      </div>
+      <button class="btn ghost icon" id="closeEpisodeEditBtn" title="关闭">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="section">
+        <div class="episode-readonly-strip">
+          <div>
+            <span>作品 ID</span>
+            <strong id="episodeEditWorkId">-</strong>
+          </div>
+          <div>
+            <span>预览</span>
+            <div id="episodeEditPreview"></div>
+          </div>
+          <div>
+            <span>点赞</span>
+            <strong id="episodeEditLikes">-</strong>
+          </div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="episode-edit-grid">
+          <div class="form-group">
+            <label for="editEpisodeNo">集数</label>
+            <select class="control" id="editEpisodeNo"></select>
+          </div>
+          <div class="form-group">
+            <label for="editEpisodeTitle">本集标题</label>
+            <input class="control" id="editEpisodeTitle" placeholder="填写本集标题" />
+          </div>
+          <div class="form-group">
+            <label for="editEpisodeType">类型</label>
+            <select class="control" id="editEpisodeType"></select>
+          </div>
+          <div class="form-group">
+            <label for="editEpisodeStatus">状态</label>
+            <select class="control" id="editEpisodeStatus"></select>
+          </div>
+          <div class="form-group wide">
+            <label for="editEpisodeTag">标签</label>
+            <select class="control" id="editEpisodeTag"></select>
+          </div>
+          <div class="form-group">
+            <label for="editEpisodeSource">来源</label>
+            <select class="control" id="editEpisodeSource"></select>
+          </div>
+          <div class="form-group wide">
+            <label>替换视频</label>
+            <div class="upload-cell">
+              <div class="mini-tabs">
+                <button class="active" data-episode-edit-upload-type="url" type="button">URL</button>
+                <button data-episode-edit-upload-type="file" type="button">本地</button>
+              </div>
+              <input class="control" id="editEpisodeVideoUrl" placeholder="粘贴新的抖音/小红书 URL" />
+              <label class="compact-file" id="editEpisodeFileLabel" hidden>
+                <input type="file" accept="video/*" id="editEpisodeVideoFile" hidden />
+                点击上传替换视频
+              </label>
+              <span class="upload-file-name" id="editEpisodeVideoName" hidden></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" id="cancelEpisodeEditBtn">取消</button>
+      <button class="btn primary" id="saveEpisodeEditBtn">保存</button>
     </div>
   </section>
 
@@ -1521,6 +1663,7 @@
     let importTargetSeriesId = null;
     let draftEpisodes = [];
     let editingRef = null;
+    let editingEpisodeRef = null;
     let confirmAction = null;
     let selectedSeriesId = "S20260513001";
     let isSeriesNavCompact = false;
@@ -1597,6 +1740,12 @@
       ).join("")}</select>`;
     }
 
+    function renderControlOptions(options, value) {
+      return options.map((option) =>
+        `<option value="${escapeAttr(option)}" ${option === value ? "selected" : ""}>${escapeHtml(option)}</option>`
+      ).join("");
+    }
+
     function renderPoster(series) {
       return `<div class="poster">${series.posterUrl ? `<img src="${escapeAttr(series.posterUrl)}" alt="${escapeAttr(series.title)}海报" />` : "海报"}</div>`;
     }
@@ -1615,7 +1764,7 @@
       $("seriesNavList").innerHTML = visible.map((series) => `
         <button class="series-nav-item ${series.id === selectedSeriesId ? "active" : ""}" data-action="select-series" data-series="${series.id}">
           <strong title="${escapeAttr(series.title)}">${escapeHtml(series.title)}</strong>
-          <small>${series.id}<br>${series.episodes.length} 集 · 作者 ${escapeHtml(series.authorUid)}</small>
+          <small>${series.id}<br>${series.episodes.length} 集</small>
         </button>
       `).join("");
 
@@ -1659,7 +1808,12 @@
             <td class="col-likes">${ep.likes || "-"}</td>
             <td>${renderSelect(tagOptions, ep.tag, `data-action="change-episode-field" data-field="tag" data-series="${selected.id}" data-episode="${ep.id}"`, "tag-select")}</td>
             <td class="col-source">${renderSelect(sourceOptions, ep.source, `data-action="change-episode-field" data-field="source" data-series="${selected.id}" data-episode="${ep.id}"`, "source-select")}</td>
-            <td class="col-actions"><button class="link-btn danger" data-action="delete-episode" data-series="${selected.id}" data-episode="${ep.id}">删除</button></td>
+            <td class="col-actions">
+              <div class="episode-edit-actions">
+                <button class="link-btn" data-action="edit-episode" data-series="${selected.id}" data-episode="${ep.id}">编辑</button>
+                <button class="link-btn danger" data-action="delete-episode" data-series="${selected.id}" data-episode="${ep.id}">删除</button>
+              </div>
+            </td>
           </tr>
         `).join("");
     }
@@ -1872,7 +2026,99 @@
     function closeConfirm() {
       confirmAction = null;
       $("confirmModal").classList.remove("show");
-      if (!$("importModal").classList.contains("show")) $("modalBackdrop").classList.remove("show");
+      if (!$("importModal").classList.contains("show") && !$("episodeEditModal").classList.contains("show")) {
+        $("modalBackdrop").classList.remove("show");
+      }
+    }
+
+    function setEpisodeEditUploadMode(mode) {
+      $("episodeEditModal").dataset.uploadType = mode;
+      $("episodeEditModal").querySelectorAll("[data-episode-edit-upload-type]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.episodeEditUploadType === mode);
+      });
+      $("editEpisodeVideoUrl").hidden = mode !== "url";
+      $("editEpisodeFileLabel").hidden = mode !== "file";
+      $("editEpisodeVideoName").hidden = mode !== "file" || !$("editEpisodeVideoFile").dataset.fileName;
+    }
+
+    function openEpisodeEdit(seriesId, episodeId) {
+      const series = seriesList.find((item) => item.id === seriesId);
+      const ep = series?.episodes.find((item) => item.id === episodeId);
+      if (!series || !ep) return;
+
+      editingEpisodeRef = { seriesId, episodeId };
+      $("episodeEditWorkId").textContent = ep.id;
+      $("episodeEditPreview").innerHTML = `<div class="thumb ${ep.preview === "loading" ? "loading" : ""}">${ep.preview === "loading" ? "处理中" : "▶"}</div>`;
+      $("episodeEditLikes").textContent = ep.likes || "-";
+      $("editEpisodeNo").innerHTML = Array.from({ length: 30 }, (_, i) =>
+        `<option value="${i + 1}" ${ep.episodeNo === i + 1 ? "selected" : ""}>${episodeLabel(i + 1)}</option>`
+      ).join("");
+      $("editEpisodeTitle").value = ep.title;
+      $("editEpisodeType").innerHTML = renderControlOptions(typeOptions, ep.type);
+      $("editEpisodeStatus").innerHTML = renderControlOptions(statusOptions, ep.status);
+      $("editEpisodeTag").innerHTML = renderControlOptions(tagOptions, ep.tag);
+      $("editEpisodeSource").innerHTML = renderControlOptions(sourceOptions, ep.source);
+      $("editEpisodeVideoUrl").value = "";
+      $("editEpisodeVideoFile").value = "";
+      $("editEpisodeVideoFile").dataset.fileName = "";
+      $("editEpisodeVideoName").textContent = "";
+      setEpisodeEditUploadMode("url");
+      $("modalBackdrop").classList.add("show");
+      $("episodeEditModal").classList.add("show");
+    }
+
+    function closeEpisodeEdit() {
+      editingEpisodeRef = null;
+      $("episodeEditModal").classList.remove("show");
+      if (!$("importModal").classList.contains("show") && !$("confirmModal").classList.contains("show")) {
+        $("modalBackdrop").classList.remove("show");
+      }
+    }
+
+    function saveEpisodeEdit() {
+      if (!editingEpisodeRef) return;
+      const series = seriesList.find((item) => item.id === editingEpisodeRef.seriesId);
+      const ep = series?.episodes.find((item) => item.id === editingEpisodeRef.episodeId);
+      if (!series || !ep) return;
+
+      const nextNo = Number($("editEpisodeNo").value);
+      const nextTitle = $("editEpisodeTitle").value.trim();
+      if (!nextTitle) {
+        showToast("请填写本集标题");
+        return;
+      }
+      if (series.episodes.some((item) => item.id !== ep.id && item.episodeNo === nextNo)) {
+        showToast("该集数已存在，请选择其他集数");
+        return;
+      }
+
+      ep.episodeNo = nextNo;
+      ep.title = nextTitle;
+      ep.type = $("editEpisodeType").value;
+      ep.status = $("editEpisodeStatus").value;
+      ep.tag = $("editEpisodeTag").value;
+      ep.source = $("editEpisodeSource").value;
+      ep.preview = ep.status === "审核中" || ep.status === "发布失败" ? "loading" : "video";
+
+      const uploadType = $("episodeEditModal").dataset.uploadType;
+      const replacementUrl = $("editEpisodeVideoUrl").value.trim();
+      const replacementFile = $("editEpisodeVideoFile").dataset.fileName || "";
+      if (uploadType === "url" && replacementUrl) {
+        ep.uploadType = "url";
+        ep.url = replacementUrl;
+        ep.fileName = "";
+        ep.preview = "loading";
+      }
+      if (uploadType === "file" && replacementFile) {
+        ep.uploadType = "file";
+        ep.fileName = replacementFile;
+        ep.url = "";
+        ep.preview = "loading";
+      }
+
+      closeEpisodeEdit();
+      renderTable();
+      showToast("单集信息已保存");
     }
 
     function openEdit(seriesId) {
@@ -2101,6 +2347,10 @@
       const series = seriesList.find((item) => item.id === seriesId);
       if (!series) return;
 
+      if (action === "edit-episode") {
+        openEpisodeEdit(seriesId, episodeId);
+      }
+
       if (action === "delete-episode") {
         const ep = series.episodes.find((item) => item.id === episodeId);
         if (!ep) return;
@@ -2124,6 +2374,20 @@
     $("okConfirmBtn").addEventListener("click", () => {
       if (confirmAction) confirmAction();
       closeConfirm();
+    });
+    $("closeEpisodeEditBtn").addEventListener("click", closeEpisodeEdit);
+    $("cancelEpisodeEditBtn").addEventListener("click", closeEpisodeEdit);
+    $("saveEpisodeEditBtn").addEventListener("click", saveEpisodeEdit);
+    $("episodeEditModal").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-episode-edit-upload-type]");
+      if (button) setEpisodeEditUploadMode(button.dataset.episodeEditUploadType);
+    });
+    $("editEpisodeVideoFile").addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      $("editEpisodeVideoFile").dataset.fileName = file.name;
+      $("editEpisodeVideoName").textContent = file.name;
+      $("editEpisodeVideoName").hidden = false;
     });
     $("closeDrawerBtn").addEventListener("click", closeEdit);
     $("cancelEditBtn").addEventListener("click", closeEdit);
