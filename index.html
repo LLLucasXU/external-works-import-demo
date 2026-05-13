@@ -1134,43 +1134,6 @@
       white-space: nowrap;
     }
 
-    .episode-readonly-strip {
-      display: grid;
-      grid-template-columns: minmax(220px, 1fr) 120px 120px;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .episode-readonly-strip > div {
-      min-height: 64px;
-      padding: 10px 12px;
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      background: var(--panel-soft);
-      display: grid;
-      align-content: center;
-      gap: 4px;
-      overflow: hidden;
-    }
-
-    .episode-readonly-strip span {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .episode-readonly-strip strong {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      font-weight: 800;
-    }
-
-    .episode-readonly-strip .thumb {
-      width: 34px;
-      height: 44px;
-    }
-
     .episode-edit-grid {
       display: grid;
       grid-template-columns: 120px minmax(220px, 1fr) 130px 150px;
@@ -1497,27 +1460,11 @@
     <div class="modal-head">
       <div>
         <h3>编辑单集</h3>
-        <div class="muted">作品 ID、预览、点赞为只读信息；可替换当前视频。</div>
+        <div class="muted">修改单集信息，并可替换当前视频。</div>
       </div>
       <button class="btn ghost icon" id="closeEpisodeEditBtn" title="关闭">×</button>
     </div>
     <div class="modal-body">
-      <div class="section">
-        <div class="episode-readonly-strip">
-          <div>
-            <span>作品 ID</span>
-            <strong id="episodeEditWorkId">-</strong>
-          </div>
-          <div>
-            <span>预览</span>
-            <div id="episodeEditPreview"></div>
-          </div>
-          <div>
-            <span>点赞</span>
-            <strong id="episodeEditLikes">-</strong>
-          </div>
-        </div>
-      </div>
       <div class="section">
         <div class="episode-edit-grid">
           <div class="form-group">
@@ -2047,9 +1994,6 @@
       if (!series || !ep) return;
 
       editingEpisodeRef = { seriesId, episodeId };
-      $("episodeEditWorkId").textContent = ep.id;
-      $("episodeEditPreview").innerHTML = `<div class="thumb ${ep.preview === "loading" ? "loading" : ""}">${ep.preview === "loading" ? "处理中" : "▶"}</div>`;
-      $("episodeEditLikes").textContent = ep.likes || "-";
       $("editEpisodeNo").innerHTML = Array.from({ length: 30 }, (_, i) =>
         `<option value="${i + 1}" ${ep.episodeNo === i + 1 ? "selected" : ""}>${episodeLabel(i + 1)}</option>`
       ).join("");
