@@ -871,9 +871,10 @@
       position: fixed;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) scale(var(--demo-scale));
+      transform-origin: center;
       width: min(1120px, calc(100vw - 36px));
-      max-height: calc(100vh - 48px);
+      max-height: calc((100vh - 48px) / var(--demo-scale));
       overflow: hidden;
       background: #fff;
       border-radius: var(--radius);
@@ -926,6 +927,40 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
+    }
+
+    .series-info-grid {
+      grid-template-columns: minmax(190px, 1fr) minmax(190px, 1fr) minmax(190px, 1fr) minmax(240px, 1.1fr);
+      align-items: stretch;
+    }
+
+    .series-info-grid .form-group {
+      margin-bottom: 0;
+      display: grid;
+      grid-template-rows: 24px 76px;
+      align-items: start;
+    }
+
+    .series-info-grid .form-group label:not(.poster-uploader) {
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .series-info-grid .control,
+    .series-info-grid textarea,
+    .series-info-grid .poster-uploader {
+      height: 76px;
+      min-height: 76px;
+    }
+
+    .series-info-grid input.control {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .series-info-grid textarea {
+      resize: none;
     }
 
     .grid-2 {
@@ -1339,7 +1374,7 @@
           <h4>剧集信息</h4>
           <span class="muted">剧集标题、作者 UID 为必填；剧集 ID 由系统生成</span>
         </div>
-        <div class="grid-4">
+        <div class="grid-4 series-info-grid">
           <div class="form-group">
             <label for="seriesTitleInput">剧集标题</label>
             <input class="control" id="seriesTitleInput" placeholder="例如：雨夜心动契约" />
