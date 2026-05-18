@@ -930,7 +930,7 @@
     }
 
     .series-info-grid {
-      grid-template-columns: minmax(190px, 1fr) minmax(190px, 1fr) minmax(190px, 1fr) minmax(240px, 1.1fr);
+      grid-template-columns: minmax(170px, .95fr) minmax(170px, .95fr) minmax(170px, .95fr) minmax(220px, 1.1fr) minmax(230px, 1.15fr);
       align-items: stretch;
     }
 
@@ -1425,6 +1425,14 @@
             <label for="seriesDescInput">剧集简介</label>
             <textarea id="seriesDescInput" placeholder="填写整部剧集简介"></textarea>
           </div>
+          <div class="form-group">
+            <label for="seriesTagInput">灵感标签</label>
+            <select class="control" id="seriesTagInput">
+              <option value="剧场_手动上传_ug创作者">剧场_手动上传_ug创作者</option>
+              <option value="剧场_手动上传_超创" selected>剧场_手动上传_超创</option>
+              <option value="剧场_手动上传_内部运营">剧场_手动上传_内部运营</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -1803,6 +1811,7 @@
         $("posterInput").value = "";
         $("posterFileName").textContent = "未选择图片";
         $("posterInput").dataset.posterUrl = "";
+        $("seriesTagInput").value = "剧场_手动上传_超创";
         draftEpisodes = [makeDraftEpisode(1)];
       }
 
@@ -1934,6 +1943,7 @@
           showToast("请补全剧集标题和作者 UID");
           return;
         }
+        const seriesTag = $("seriesTagInput").value;
         const newSeriesId = `S${Date.now()}`;
         seriesList.unshift({
           id: newSeriesId,
@@ -1950,7 +1960,7 @@
             type: "首创",
             status: "审核中",
             likes: 0,
-            tag: "剧场_手动上传_ug创作者",
+            tag: seriesTag,
             source: "ugc",
             preview: "loading"
           }))
